@@ -1,5 +1,5 @@
 ARG MY_DEBIAN_VERSION
-FROM debian:${MY_DEBIAN_VERSION}
+FROM ubuntu:${MY_DEBIAN_VERSION}
 MAINTAINER holishing
 COPY pttbbs_conf /tmp/pttbbs.conf
 COPY bindports_conf /tmp/bindports.conf
@@ -12,8 +12,11 @@ ARG OPENRESTY_ARCH=
 
 ENV DEBIAN_VERSION $MY_DEBIAN_VERSION
 RUN set -x \
+    && echo "DEBIAN_VERSION: ${DEBIAN_VERSION} OPENRESTY_ARCH: ${OPENRESTY_ARCH}" && sleep 3 \
     && groupadd --gid 99 bbs \
     && useradd -m -g bbs -s /bin/bash --uid 9999 bbs \
+    && apt-get update \
+    && apt-get install -y tzdata \
     && rm /etc/localtime \
     && ln -rsv /usr/share/zoneinfo/Asia/Taipei /etc/localtime \
     && (if [ -f "/etc/apt/sources.list.d/debian.sources" ];then cat /etc/apt/sources.list.d/debian.sources;else cat /etc/apt/sources.list;fi) \
@@ -40,7 +43,7 @@ RUN set -x \
         libio-all-perl \
         libemail-sender-perl \
     && ( curl -L https://openresty.org/package/pubkey.gpg | gpg --dearmor -o /usr/share/keyrings/openresty-archive-keyring.gpg ) \
-    && ( echo "deb [signed-by=/usr/share/keyrings/openresty-archive-keyring.gpg] http://openresty.org/${OPENRESTY_ARCH}/package/debian $(echo ${DEBIAN_VERSION}|sed 's/bookworm/bullseye/g'|sed 's/sid/bullseye/g') openresty" | tee /etc/apt/sources.list.d/openresty.list ) \
+    && ( echo "deb [signed-by=/usr/share/keyrings/openresty-archive-keyring.gpg] http://openresty.org/${OPENRESTY_ARCH}/package/ubuntu $(echo ${DEBIAN_VERSION}|sed 's/bookworm/bullseye/g'|sed 's/sid/bullseye/g') openresty" | tee /etc/apt/sources.list.d/openresty.list ) \
     && apt-get update \
     && apt-get -y install --no-install-recommends openresty \
     && cp /tmp/nginx.conf /usr/local/openresty/nginx/conf/nginx.conf \
